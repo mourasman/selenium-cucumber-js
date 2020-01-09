@@ -1,6 +1,6 @@
 {
   "name": "@mourasman/selenium-cucumber-js",
-  "version": "3.0.0",
+  "version": "4.0.0",
   "description": "JavaScript browser automation framework using official selenium-webdriver and cucumber-js",
   "main": "index.js",
   "scripts": {
