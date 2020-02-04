@@ -30,7 +30,8 @@ var config = {
     reports: './reports',
     browser: 'chrome',
     browserTeardownStrategy: 'always',
-    timeout: 15000
+    timeout: 15000,
+    parallel: 1
 };
 
 var configFileName = path.resolve(process.cwd(), 'selenium-cucumber-js.json');
@@ -55,6 +56,7 @@ program
     .option('-x, --timeOut <n>', 'steps definition timeout in milliseconds. defaults to ' + config.timeout, coerceInt, config.timeout)
     .option('-n, --noScreenshot [optional]', 'disable auto capturing of screenshots when an error is encountered')
     .option('-w, --worldParameters <JSON>', 'JSON object to pass to cucumber-js world constructor. defaults to empty', config.worldParameters)
+    .option('--parallel <n>', 'Number of slaves to be spawned. Each will run a separate feature', config.parallel)
     .parse(process.argv);
 
 program.on('--help', function () {
@@ -128,7 +130,12 @@ if (program.tags) {
     });
 }
 
-if (program.worldParameters){
+if (program.parallel) {
+    process.argv.push('--parallel');
+    process.argv.push(program.parallel);
+}
+
+if (program.worldParameters) {
     process.argv.push('--world-parameters');
     process.argv.push(program.worldParameters);
 }
