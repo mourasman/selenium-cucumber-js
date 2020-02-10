@@ -6,6 +6,9 @@
   "scripts": {
     "test": "node index.js"
   },
+  "bin": {
+    "selenium-cucumber-js": "index.js"
+  },
   "author": {
     "name": "John Doherty",
     "email": "contact@johndoherty.info",
