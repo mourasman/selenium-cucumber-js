@@ -34,8 +34,8 @@ function getDriverInstance() {
 
     var driver;
 
-    if (config.seleniumServer && config.browserstackUser && config.browserstackKey) {
-        return new BrowserstackDriver(config.seleniumServer, config.browserName, config.browserstackUser, config.browserstackKey);
+    if (seleniumServer && browserstackUser && browserstackKey) {
+        return new BrowserstackDriver(seleniumServer, browserName, browserstackUser, browserstackKey);
     }
 
     switch (browserName || '') {
