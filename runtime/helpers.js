@@ -266,7 +266,7 @@ module.exports = {
     },
 
     clearStorages: function() {
-        return driver.executeScript('window.localStorage.clear(); window.sessionStorage.clear();')
+        return driver.executeScript('window.localStorage.clear(); window.sessionStorage.clear();');
     },
 
     clearCookiesAndStorages: function() {

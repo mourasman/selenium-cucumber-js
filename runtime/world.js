@@ -171,7 +171,7 @@ function importSupportObjects() {
 function closeBrowser() {
     // firefox quits on driver.close on the last window
     return driver.close().then(function () {
-        if (browserName !== 'firefox'){
+        if (browserName !== 'firefox') {
             return driver.quit();
         }
     });
@@ -242,7 +242,7 @@ module.exports = function () {
             closeBrowser().then(() => done());
         }
         else {
-            new Promise((resolve) => resolve(done()));
+            new Promise(resolve => resolve(done()));
         }
     });
 
