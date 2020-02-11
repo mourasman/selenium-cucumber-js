@@ -4,27 +4,29 @@
  * world.js is loaded by the cucumber framework before loading the step definitions and feature files
  * it is responsible for setting up and exposing the driver/browser/expect/assert etc required within each step definition
  */
-
-var fs = require('fs-plus');
-var path = require('path');
-var requireDir = require('require-dir');
-var merge = require('merge');
-var chalk = require('chalk');
-var selenium = require('selenium-webdriver');
-var expect = require('chai').expect;
-var assert = require('chai').assert;
-var reporter = require('cucumber-html-reporter');
-var cucumberJunit = require('cucumber-junit');
+const fs = require('fs-plus');
+const path = require('path');
+const requireDir = require('require-dir');
+const merge = require('merge');
+const chalk = require('chalk');
+const selenium = require('selenium-webdriver');
+const expect = require('chai').expect;
+const assert = require('chai').assert;
+const reporter = require('cucumber-html-reporter');
+const cucumberJunit = require('cucumber-junit');
+const browserstack = require('browserstack-local');
 
 // Initialize the eyes SDK and set your private API key.
-var Eyes = require('eyes.selenium').Eyes;
+const Eyes = require('eyes.selenium').Eyes;
 
 // drivers
-var FireFoxDriver = require('./firefoxDriver.js');
-var PhantomJSDriver = require('./phantomDriver.js');
-var ElectronDriver = require('./electronDriver.js');
-var ChromeDriver = require('./chromeDriver');
-var BrowserstackDriver = require('./browserstack');
+const FireFoxDriver = require('./firefoxDriver.js');
+const PhantomJSDriver = require('./phantomDriver.js');
+const ElectronDriver = require('./electronDriver.js');
+const ChromeDriver = require('./chromeDriver');
+const BrowserstackDriver = require('./browserstack');
+
+let bsLocal;
 
 /**
  * create the selenium browser based on global var set in index.js
@@ -32,9 +34,16 @@ var BrowserstackDriver = require('./browserstack');
  */
 function getDriverInstance() {
 
-    var driver;
+    let driver;
 
     if (seleniumServer && browserstackUser && browserstackKey) {
+        bsLocal = new browserstack.Local();
+        const bsLocalArgs = { key: browserstackKey };
+
+        bsLocal.start(bsLocalArgs, function () {
+            console.log('BrowserStackLocal successfully started!');
+        });
+
         return new BrowserstackDriver(seleniumServer, browserName, browserstackUser, browserstackKey);
     }
 
@@ -62,7 +71,7 @@ function getDriverInstance() {
 
           // try to load from file
         default: {
-            var driverFileName = path.resolve(process.cwd(), browserName);
+            const driverFileName = path.resolve(process.cwd(), browserName);
 
             if (!fs.isFileSync(driverFileName)) {
                 throw new Error('Could not find driver file: ' + driverFileName);
@@ -84,7 +93,7 @@ function getEyesInstance() {
 
     if (global.eyesKey) {
 
-        var eyes = new Eyes();
+        const eyes = new Eyes();
 
         // retrieve eyes api key from config file in the project root as defined by the user
         eyes.setApiKey(global.eyesKey);
@@ -96,7 +105,7 @@ function getEyesInstance() {
 }
 
 function consoleInfo() {
-    var args = [].slice.call(arguments),
+    const args = [].slice.call(arguments),
         output = chalk.bgBlue.white('\n>>>>> \n' + args + '\n<<<<<\n');
 
     console.log(output);
@@ -108,7 +117,7 @@ function consoleInfo() {
  */
 function createWorld() {
 
-    var runtime = {
+    const runtime = {
         driver: null,               // the browser object
         eyes: null,
         selenium: selenium,         // the raw nodejs selenium driver
@@ -142,14 +151,14 @@ function importSupportObjects() {
     // import shared objects from multiple paths (after global vars have been created)
     if (global.sharedObjectPaths && Array.isArray(global.sharedObjectPaths) && global.sharedObjectPaths.length > 0) {
 
-        var allDirs = {};
+        const allDirs = {};
 
         // first require directories into objects by directory
         global.sharedObjectPaths.forEach(function (itemPath) {
 
             if (fs.existsSync(itemPath)) {
 
-                var dir = requireDir(itemPath, { camelcase: true, recurse: true });
+                const dir = requireDir(itemPath, { camelcase: true, recurse: true });
 
                 merge(allDirs, dir);
             }
@@ -178,6 +187,12 @@ function closeBrowser() {
     // firefox quits on driver.close on the last window
     return driver.close().then(function () {
         if (browserName !== 'firefox') {
+            if (bsLocal) {
+                return bsLocal.stop(function () {
+                    return driver.quit();
+                });
+            }
+
             return driver.quit();
         }
     });
@@ -220,12 +235,12 @@ module.exports = function () {
 
     this.registerHandler('AfterFeatures', function (features, done) {
 
-        var cucumberReportPath = path.resolve(global.reportsPath, 'cucumber-report.json');
+        const cucumberReportPath = path.resolve(global.reportsPath, 'cucumber-report.json');
 
         if (global.reportsPath && fs.existsSync(global.reportsPath)) {
 
             // generate the HTML report
-            var reportOptions = {
+            const reportOptions = {
                 theme: 'bootstrap',
                 jsonFile: cucumberReportPath,
                 output: path.resolve(global.reportsPath, 'cucumber-report.html'),
@@ -237,9 +252,9 @@ module.exports = function () {
             reporter.generate(reportOptions);
 
             // grab the file data
-            var reportRaw = fs.readFileSync(cucumberReportPath).toString().trim();
-            var xmlReport = cucumberJunit(reportRaw);
-            var junitOutputPath = path.resolve(global.junitPath, 'junit-report.xml');
+            const reportRaw = fs.readFileSync(cucumberReportPath).toString().trim();
+            const xmlReport = cucumberJunit(reportRaw);
+            const junitOutputPath = path.resolve(global.junitPath, 'junit-report.xml');
 
             fs.writeFileSync(junitOutputPath, xmlReport);
         }

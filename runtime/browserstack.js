@@ -1,6 +1,7 @@
 'use strict';
 
-var selenium = require('selenium-webdriver');
+const selenium = require('selenium-webdriver');
+const browserstack = require('browserstack-local');
 
 /**
  * Creates a Selenium WebDriver using Chrome as the browser
