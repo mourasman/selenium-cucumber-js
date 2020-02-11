@@ -24,6 +24,7 @@ var FireFoxDriver = require('./firefoxDriver.js');
 var PhantomJSDriver = require('./phantomDriver.js');
 var ElectronDriver = require('./electronDriver.js');
 var ChromeDriver = require('./chromeDriver');
+var BrowserstackDriver = require('./browserstack');
 
 /**
  * create the selenium browser based on global var set in index.js
@@ -32,6 +33,10 @@ var ChromeDriver = require('./chromeDriver');
 function getDriverInstance() {
 
     var driver;
+
+    if (config.seleniumServer && config.browserstackUser && config.browserstackKey) {
+        return new BrowserstackDriver(config.seleniumServer, config.browserName, config.browserstackUser, config.browserstackKey);
+    }
 
     switch (browserName || '') {
 
@@ -55,7 +60,7 @@ function getDriverInstance() {
         }
             break;
 
-        // try to load from file
+          // try to load from file
         default: {
             var driverFileName = path.resolve(process.cwd(), browserName);
 
@@ -66,6 +71,7 @@ function getDriverInstance() {
             driver = require(driverFileName)();
         }
     }
+
 
     return driver;
 }

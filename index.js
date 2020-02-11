@@ -31,7 +31,10 @@ var config = {
     browser: 'chrome',
     browserTeardownStrategy: 'always',
     timeout: 15000,
-    parallel: 1
+    parallel: 1,
+    seleniumServer: null,
+    browserstackUser: null,
+    browserstackKey: null
 };
 
 var configFileName = path.resolve(process.cwd(), 'selenium-cucumber-js.json');
@@ -57,11 +60,16 @@ program
     .option('-n, --noScreenshot [optional]', 'disable auto capturing of screenshots when an error is encountered')
     .option('-w, --worldParameters <JSON>', 'JSON object to pass to cucumber-js world constructor. defaults to empty', config.worldParameters)
     .option('--parallel <n>', 'Number of slaves to be spawned. Each will run a separate feature', config.parallel)
+    .option('--selenium-server <url>', 'Selenium Grid URL', config.seleniumServer)
+    .option('--browserstack-user <string>', 'BrowserStack user', config.browserstackUser)
+    .option('--browserstack-key <string>', 'BrowserStack key', config.browserstackKey)
     .parse(process.argv);
 
 program.on('--help', function () {
     console.log('  For more details please visit https://github.com/john-doherty/selenium-cucumber-js#readme\n');
 });
+
+global.config = config;
 
 // store browserName globally (used within world.js to build driver)
 global.browserName = program.browser;
