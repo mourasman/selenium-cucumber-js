@@ -24,6 +24,7 @@ const FireFoxDriver = require('./firefoxDriver.js');
 const PhantomJSDriver = require('./phantomDriver.js');
 const ElectronDriver = require('./electronDriver.js');
 const ChromeDriver = require('./chromeDriver');
+const RemoteDriver = require('./remote');
 const BrowserstackDriver = require('./browserstack');
 
 let bsLocal;
@@ -36,15 +37,20 @@ function getDriverInstance() {
 
     let driver;
 
-    if (seleniumServer && browserstackUser && browserstackKey) {
-        bsLocal = new browserstack.Local();
-        const bsLocalArgs = { key: browserstackKey };
+    if (seleniumServer) {
 
-        bsLocal.start(bsLocalArgs, function () {
-            console.log('BrowserStackLocal successfully started!');
-        });
+        if (browserstackUser && browserstackKey) {
+            bsLocal = new browserstack.Local();
+            const bsLocalArgs = { key: browserstackKey };
 
-        return new BrowserstackDriver(seleniumServer, browserName, browserstackUser, browserstackKey);
+            bsLocal.start(bsLocalArgs, function () {
+                console.log('BrowserStackLocal successfully started!');
+            });
+
+            return new BrowserstackDriver(seleniumServer, browserName, browserstackUser, browserstackKey);
+        }
+
+        return new RemoteDriver(seleniumServer, browserName);
     }
 
     switch (browserName || '') {
