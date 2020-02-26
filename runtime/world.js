@@ -26,8 +26,7 @@ const ElectronDriver = require('./electronDriver.js');
 const ChromeDriver = require('./chromeDriver');
 const RemoteDriver = require('./remote');
 const BrowserstackDriver = require('./browserstack');
-
-let bsLocal;
+const LambdatestDriver = require('./lambdatest');
 
 /**
  * create the selenium browser based on global var set in index.js
@@ -40,14 +39,11 @@ function getDriverInstance() {
     if (seleniumServer) {
 
         if (browserstackUser && browserstackKey) {
-            bsLocal = new browserstack.Local();
-            const bsLocalArgs = { key: browserstackKey };
-
-            bsLocal.start(bsLocalArgs, function () {
-                console.log('BrowserStackLocal successfully started!');
-            });
-
             return new BrowserstackDriver(seleniumServer, browserName, browserstackUser, browserstackKey);
+        }
+
+        if (lambdatestUser && lambdatestKey) {
+            return new LambdatestDriver(browserName, seleniumServer, lambdatestUser, lambdatestKey, lambdatestUseTunnel);
         }
 
         return new RemoteDriver(seleniumServer, browserName);

@@ -9,6 +9,10 @@ const browserstack = require('browserstack-local');
  */
 module.exports = function(seleniumServer, browserName, browserstackUser, browserstackKey) {
 
+    new browserstack.Local().start({ key: browserstackKey }, function () {
+        console.log('BrowserStackLocal successfully started!');
+    });
+
     const driver = new selenium.Builder()
       .usingServer(seleniumServer)
       .withCapabilities(

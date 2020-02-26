@@ -31,10 +31,7 @@ var config = {
     browser: 'chrome',
     browserTeardownStrategy: 'always',
     timeout: 15000,
-    parallel: 1,
-    seleniumServer: null,
-    browserstackUser: null,
-    browserstackKey: null
+    parallel: 1
 };
 
 var configFileName = path.resolve(process.cwd(), 'selenium-cucumber-js.json');
@@ -60,9 +57,12 @@ program
     .option('-n, --noScreenshot [optional]', 'disable auto capturing of screenshots when an error is encountered')
     .option('-w, --worldParameters <JSON>', 'JSON object to pass to cucumber-js world constructor. defaults to empty', config.worldParameters)
     .option('--parallel <n>', 'Number of slaves to be spawned. Each will run a separate feature', config.parallel)
-    .option('--selenium-server <url>', 'Selenium Grid URL', config.seleniumServer)
-    .option('--browserstack-user <string>', 'BrowserStack user', config.browserstackUser)
-    .option('--browserstack-key <string>', 'BrowserStack key', config.browserstackKey)
+    .option('--selenium-server <url>', 'Selenium Grid URL', null)
+    .option('--lambdatest-user <string>', 'LambdaTest User', null)
+    .option('--lambdatest-key <string>', 'LambdaTest Access Key', null)
+    .option('--lambdatest-use-tunnel <boolean>', 'Should use LambdaTest tunnel?', null)
+    .option('--browserstack-user <string>', 'BrowserStack user', null)
+    .option('--browserstack-key <string>', 'BrowserStack key', null)
     .parse(process.argv);
 
 program.on('--help', function () {
@@ -70,6 +70,9 @@ program.on('--help', function () {
 });
 
 global.seleniumServer = program.seleniumServer;
+global.lambdatestUser = program.lambdatestUser;
+global.lambdatestKey = program.lambdatestKey;
+global.lambdatestUseTunnel = program.lambdatestUseTunnel;
 global.browserstackUser = program.browserstackUser;
 global.browserstackKey = program.browserstackKey;
 
