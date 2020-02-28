@@ -15,6 +15,7 @@ const assert = require('chai').assert;
 const reporter = require('cucumber-html-reporter');
 const cucumberJunit = require('cucumber-junit');
 const browserstack = require('browserstack-local');
+const LambdaTunnel = require('@lambdatest/node-tunnel');
 
 // Initialize the eyes SDK and set your private API key.
 const Eyes = require('eyes.selenium').Eyes;
@@ -27,6 +28,8 @@ const ChromeDriver = require('./chromeDriver');
 const RemoteDriver = require('./remote');
 const BrowserstackDriver = require('./browserstack');
 const LambdatestDriver = require('./lambdatest');
+
+let lambdaTunnel;
 
 /**
  * create the selenium browser based on global var set in index.js
@@ -71,7 +74,7 @@ function getDriverInstance() {
         }
             break;
 
-          // try to load from file
+      // try to load from file
         default: {
             const driverFileName = path.resolve(process.cwd(), browserName);
 
@@ -108,7 +111,7 @@ function getEyesInstance() {
 
 function consoleInfo() {
     const args = [].slice.call(arguments),
-        output = chalk.bgBlue.white('\n>>>>> \n' + args + '\n<<<<<\n');
+      output = chalk.bgBlue.white('\n>>>>> \n' + args + '\n<<<<<\n');
 
     console.log(output);
 }
@@ -195,6 +198,10 @@ function closeBrowser() {
                 });
             }
 
+            if (lambdatestUseTunnel && lambdaTunnel.isRunning()) {
+                return lambdaTunnel.stop();
+            }
+
             return driver.quit();
         }
     });
@@ -224,10 +231,27 @@ module.exports = function () {
     this.setDefaultTimeout(global.DEFAULT_TIMEOUT);
 
     // create the driver and applitools eyes before scenario if it's not instantiated
-    this.registerHandler('BeforeScenario', function (scenario) {
+    this.registerHandler('BeforeScenario', function (scenario, done) {
 
         if (!global.driver) {
-            global.driver = getDriverInstance();
+            if (lambdatestUser && lambdatestKey && lambdatestUseTunnel) {
+                lambdaTunnel = new LambdaTunnel();
+                try {
+                    lambdaTunnel.start({
+                        user: lambdatestUser,
+                        key: lambdatestKey
+                    }, () => {
+                        global.driver = getDriverInstance();
+                        done();
+                    });
+                } catch (e) {
+                    done(e);
+                }
+            } else {
+                global.driver = getDriverInstance();
+                done();
+            }
+
         }
 
         if (!global.eyes) {
