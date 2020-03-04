@@ -29,7 +29,7 @@ const RemoteDriver = require('./remote');
 const BrowserstackDriver = require('./browserstack');
 const LambdatestDriver = require('./lambdatest');
 
-let lambdaTunnel;
+let lambdaTunnel = new LambdaTunnel();
 
 /**
  * create the selenium browser based on global var set in index.js
@@ -192,29 +192,19 @@ function closeBrowser() {
     // firefox quits on driver.close on the last window
     return driver.close().then(function () {
         if (browserName !== 'firefox') {
-            if (bsLocal) {
-                return bsLocal.stop(function () {
-                    return driver.quit();
-                });
-            }
-
-            if (lambdatestUseTunnel && lambdaTunnel.isRunning()) {
-                return lambdaTunnel.stop();
-            }
-
             return driver.quit();
         }
     });
 }
 
-function teardownBrowser() {
+function teardownBrowser(done) {
     switch (browserTeardownStrategy) {
         case 'none':
             return Promise.resolve();
         case 'clear':
             return helpers.clearCookiesAndStorages();
         default:
-            return closeBrowser(driver);
+            return closeBrowser(driver, done);
     }
 }
 
@@ -230,28 +220,21 @@ module.exports = function () {
     // set the default timeout for all tests
     this.setDefaultTimeout(global.DEFAULT_TIMEOUT);
 
+    this.registerHandler('BeforeFeatures', function (features, done) {
+        if (lambdatestUser && lambdatestKey && lambdatestUseTunnel) {
+            lambdaTunnel.start({
+                user: lambdatestUser,
+                key: lambdatestKey
+            }).then(() => done())
+              .catch((error) => done());
+        }
+    });
+
     // create the driver and applitools eyes before scenario if it's not instantiated
-    this.registerHandler('BeforeScenario', function (scenario, done) {
+    this.registerHandler('BeforeScenario', function (scenario) {
 
         if (!global.driver) {
-            if (lambdatestUser && lambdatestKey && lambdatestUseTunnel) {
-                lambdaTunnel = new LambdaTunnel();
-                try {
-                    lambdaTunnel.start({
-                        user: lambdatestUser,
-                        key: lambdatestKey
-                    }, () => {
-                        global.driver = getDriverInstance();
-                        done();
-                    });
-                } catch (e) {
-                    done(e);
-                }
-            } else {
-                global.driver = getDriverInstance();
-                done();
-            }
-
+            global.driver = getDriverInstance();
         }
 
         if (!global.eyes) {
@@ -288,7 +271,9 @@ module.exports = function () {
         if (browserTeardownStrategy !== 'always') {
             closeBrowser().then(() => done());
         }
-        else {
+        else if (lambdatestUseTunnel && lambdaTunnel.isRunning()) {
+            lambdaTunnel.stop(done);
+        } else {
             new Promise(resolve => resolve(done()));
         }
     });
