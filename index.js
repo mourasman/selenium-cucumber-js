@@ -61,20 +61,16 @@ program
     .option('--lambdatest-user <string>', 'LambdaTest User', null)
     .option('--lambdatest-key <string>', 'LambdaTest Access Key', null)
     .option('--lambdatest-use-tunnel <boolean>', 'Should use LambdaTest tunnel?', null)
-    .option('--browserstack-user <string>', 'BrowserStack user', null)
-    .option('--browserstack-key <string>', 'BrowserStack key', null)
     .parse(process.argv);
 
 program.on('--help', function () {
     console.log('  For more details please visit https://github.com/john-doherty/selenium-cucumber-js#readme\n');
 });
 
-global.seleniumServer = program.seleniumServer;
+global.seleniumServer = program.lambdatestUser && program.lambdatestKey ? `https://${program.lambdatestUser}:${program.lambdatestKey}@hub.lambdatest.com/wd/hub` : program.seleniumServer;
 global.lambdatestUser = program.lambdatestUser;
 global.lambdatestKey = program.lambdatestKey;
 global.lambdatestUseTunnel = program.lambdatestUseTunnel;
-global.browserstackUser = program.browserstackUser;
-global.browserstackKey = program.browserstackKey;
 
 // store browserName globally (used within world.js to build driver)
 global.browserName = program.browser;

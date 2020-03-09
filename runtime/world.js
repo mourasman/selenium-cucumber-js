@@ -14,7 +14,6 @@ const expect = require('chai').expect;
 const assert = require('chai').assert;
 const reporter = require('cucumber-html-reporter');
 const cucumberJunit = require('cucumber-junit');
-const browserstack = require('browserstack-local');
 const LambdaTunnel = require('@lambdatest/node-tunnel');
 
 // Initialize the eyes SDK and set your private API key.
@@ -26,10 +25,9 @@ const PhantomJSDriver = require('./phantomDriver.js');
 const ElectronDriver = require('./electronDriver.js');
 const ChromeDriver = require('./chromeDriver');
 const RemoteDriver = require('./remote');
-const BrowserstackDriver = require('./browserstack');
 const LambdatestDriver = require('./lambdatest');
 
-let lambdaTunnel = new LambdaTunnel();
+const lambdaTunnel = new LambdaTunnel();
 
 /**
  * create the selenium browser based on global var set in index.js
@@ -40,10 +38,6 @@ function getDriverInstance() {
     let driver;
 
     if (seleniumServer) {
-
-        if (browserstackUser && browserstackKey) {
-            return new BrowserstackDriver(seleniumServer, browserName, browserstackUser, browserstackKey);
-        }
 
         if (lambdatestUser && lambdatestKey) {
             return new LambdatestDriver(browserName, seleniumServer, lambdatestUser, lambdatestKey, lambdatestUseTunnel);
@@ -111,7 +105,7 @@ function getEyesInstance() {
 
 function consoleInfo() {
     const args = [].slice.call(arguments),
-      output = chalk.bgBlue.white('\n>>>>> \n' + args + '\n<<<<<\n');
+        output = chalk.bgBlue.white('\n>>>>> \n' + args + '\n<<<<<\n');
 
     console.log(output);
 }
@@ -226,7 +220,7 @@ module.exports = function () {
                 user: lambdatestUser,
                 key: lambdatestKey
             }).then(() => done())
-              .catch((error) => done());
+              .catch(error => done(error));
         }
     });
 
@@ -273,7 +267,8 @@ module.exports = function () {
         }
         else if (lambdatestUseTunnel && lambdaTunnel.isRunning()) {
             lambdaTunnel.stop(done);
-        } else {
+        }
+        else {
             new Promise(resolve => resolve(done()));
         }
     });
