@@ -21,7 +21,6 @@ const Eyes = require('eyes.selenium').Eyes;
 
 // drivers
 const FireFoxDriver = require('./firefoxDriver.js');
-const PhantomJSDriver = require('./phantomDriver.js');
 const ElectronDriver = require('./electronDriver.js');
 const ChromeDriver = require('./chromeDriver');
 const RemoteDriver = require('./remote');
@@ -50,11 +49,6 @@ function getDriverInstance() {
 
         case 'firefox': {
             driver = new FireFoxDriver();
-        }
-            break;
-
-        case 'phantomjs': {
-            driver = new PhantomJSDriver();
         }
             break;
 
